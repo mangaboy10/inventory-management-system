@@ -1,0 +1,80 @@
+﻿@page "/staff"
+@rendermode InteractiveServer 
+@using InventoryManagementSystem.Models
+@using InventoryManagementSystem.Service
+@inject StaffService StaffService
+@inject NavigationManager Nav
+
+<h3>Staff</h3>
+
+<button class="btn btn-primary mb-2" @onclick="TostaffForm">
+    Add Staff
+</button>
+
+@if (staffMembers == null || staffMembers.Count == 0)
+{
+    <p>No staff found.</p>
+}
+else
+{
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Staff ID</th>
+                <th>Staff Name</th>
+                <th>Department</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var staff in staffMembers)
+            {
+                <tr>
+                    <td>@staff.Staff_ID</td>
+                    <td>@staff.Staff_Name</td>
+                    <td>@staff.Department</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm me-2"
+                                @onclick="() => Edit(staff.Staff_ID)">
+                            Edit
+                        </button>
+
+                        <button class="btn btn-danger btn-sm"
+                                @onclick="() => Delete(staff.Staff_ID)">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Staff> staffMembers = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        staffMembers = await StaffService.GetAllStaffAsync();
+    }
+
+    private void TostaffForm()
+    {
+        Nav.NavigateTo("/staffform");
+    }
+
+    private void Edit(int id)
+    {
+        Nav.NavigateTo($"/staffform/{id}");
+    }
+
+    private async Task Delete(int id)
+    {
+        var result = await StaffService.DeleteStaffAsync(id);
+
+        if (result.Success)
+        {
+            staffMembers = await StaffService.GetAllStaffAsync();
+        }
+    }
+}

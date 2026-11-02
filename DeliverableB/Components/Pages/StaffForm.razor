@@ -1,0 +1,79 @@
+﻿@page "/staffform"
+@page "/staffform/{Id:int}"
+@rendermode InteractiveServer 
+@using InventoryManagementSystem.Models
+@using InventoryManagementSystem.Service
+@inject StaffService StaffService
+@inject NavigationManager Nav
+
+<h3>Staff Form</h3>
+
+<EditForm Model="@staff" OnValidSubmit="SaveStaff">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label class="form-label">Staff Name</label>
+        <InputText class="form-control" @bind-Value="staff.Staff_Name" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Department</label>
+        <InputText class="form-control" @bind-Value="staff.Department" />
+    </div>
+
+    <button type="submit" class="btn btn-success me-2">Save</button>
+    <button type="button" class="btn btn-secondary" @onclick="GoBack">Cancel</button>
+</EditForm>
+
+@if (!string.IsNullOrWhiteSpace(message))
+{
+    <p class="mt-3">@message</p>
+}
+
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+
+    private Staff staff = new();
+    private string message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id.HasValue)
+        {
+            var existing = await StaffService.GetStaffAsync(Id.Value);
+
+            if (existing != null)
+            {
+                staff = existing;
+            }
+        }
+    }
+
+    private async Task SaveStaff()
+    {
+        (bool Success, string Message) result;
+
+        if (staff.Staff_ID == 0)
+        {
+            result = await StaffService.AddStaffAsync(staff);
+        }
+        else
+        {
+            result = await StaffService.UpdateStaffAsync(staff);
+        }
+
+        message = result.Message;
+
+        if (result.Success)
+        {
+            Nav.NavigateTo("/staff");
+        }
+    }
+
+    private void GoBack()
+    {
+        Nav.NavigateTo("/staff");
+    }
+}

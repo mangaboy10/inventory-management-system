@@ -1,0 +1,74 @@
+﻿@page "/supplierform"
+@page "/supplierform/{Id:int}"
+@rendermode InteractiveServer 
+@using InventoryManagementSystem.Models
+@using InventoryManagementSystem.Service
+@inject SupplierService SupplierService
+@inject NavigationManager Nav
+
+<h3>Supplier Form</h3>
+
+<EditForm Model="@supplier" OnValidSubmit="SaveSupplier">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label class="form-label">Supplier Name</label>
+        <InputText class="form-control" @bind-Value="supplier.Supplier_Name" />
+    </div>
+
+    <button type="submit" class="btn btn-success me-2">Save</button>
+    <button type="button" class="btn btn-secondary" @onclick="GoBack">Cancel</button>
+</EditForm>
+
+@if (!string.IsNullOrWhiteSpace(message))
+{
+    <p class="mt-3">@message</p>
+}
+
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+
+    private Supplier supplier = new();
+    private string message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id.HasValue)
+        {
+            var existing = await SupplierService.GetSupplierAsync(Id.Value);
+
+            if (existing != null)
+            {
+                supplier = existing;
+            }
+        }
+    }
+
+    private async Task SaveSupplier()
+    {
+        (bool Success, string Message) result;
+
+        if (supplier.Supplier_ID == 0)
+        {
+            result = await SupplierService.AddSupplierAsync(supplier);
+        }
+        else
+        {
+            result = await SupplierService.UpdateSupplierAsync(supplier);
+        }
+
+        message = result.Message;
+
+        if (result.Success)
+        {
+            Nav.NavigateTo("/suppliers");
+        }
+    }
+
+    private void GoBack()
+    {
+        Nav.NavigateTo("/suppliers");
+    }
+}

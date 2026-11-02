@@ -1,0 +1,89 @@
+﻿@page "/itemform"
+@page "/itemform/{Id:int}"
+@rendermode InteractiveServer 
+@using InventoryManagementSystem.Models
+@using InventoryManagementSystem.Service
+@inject ItemService ItemService
+@inject NavigationManager Nav
+
+<h3>Item Form</h3>
+
+<EditForm Model="@item" OnValidSubmit="SaveItem">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label class="form-label">Item Name</label>
+        <InputText class="form-control" @bind-Value="item.Item_Name" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Unit</label>
+        <InputText class="form-control" @bind-Value="item.Unit" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Quantity On Hand</label>
+        <InputNumber class="form-control" @bind-Value="item.Qty_On_Hand" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Reorder Level</label>
+        <InputNumber class="form-control" @bind-Value="item.Reorder_Level" />
+    </div>
+
+    <button type="submit" class="btn btn-success me-2">Save</button>
+    <button type="button" class="btn btn-secondary" @onclick="GoBack">Cancel</button>
+</EditForm>
+
+@if (!string.IsNullOrWhiteSpace(message))
+{
+    <p class="mt-3">@message</p>
+}
+
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+
+    private Item item = new();
+    private string message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id.HasValue)
+        {
+            var existingItem = await ItemService.GetItemAsync(Id.Value);
+
+            if (existingItem != null)
+            {
+                item = existingItem;
+            }
+        }
+    }
+
+    private async Task SaveItem()
+    {
+        (bool Success, string Message) result;
+
+        if (item.Item_ID == 0)
+        {
+            result = await ItemService.AddItemAsync(item);
+        }
+        else
+        {
+            result = await ItemService.UpdateItemAsync(item);
+        }
+
+        message = result.Message;
+
+        if (result.Success)
+        {
+            Nav.NavigateTo("/items");
+        }
+    }
+
+    private void GoBack()
+    {
+        Nav.NavigateTo("/items");
+    }
+}

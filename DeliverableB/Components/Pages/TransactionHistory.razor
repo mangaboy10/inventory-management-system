@@ -1,0 +1,60 @@
+﻿@page "/transactions"
+@rendermode InteractiveServer 
+@using InventoryManagementSystem.Models
+@using InventoryManagementSystem.Service
+@inject TransactionService TransactionService
+
+<h3>Transaction History</h3>
+
+@if (transactions == null || transactions.Count == 0)
+{
+    <p>No transactions found.</p>
+}
+else
+{
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Transaction ID</th>
+                <th>Item</th>
+                <th>Type</th>
+                <th>Quantity</th>
+                <th>Supplier / Staff</th>
+                <th>Date</th>
+                <th>Remarks</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var transaction in transactions)
+            {
+                <tr>
+                    <td>@transaction.Transaction_ID</td>
+                    <td>@transaction.Item?.Item_Name</td>
+                    <td>@transaction.Transaction_Type</td>
+                    <td>@transaction.Qty</td>
+                    <td>
+                        @if (transaction.Transaction_Type == "R")
+                        {
+                            @transaction.Supplier?.Supplier_Name
+                        }
+                        else if (transaction.Transaction_Type == "I")
+                        {
+                            @transaction.Staff?.Staff_Name
+                        }
+                    </td>
+                    <td>@transaction.Transaction_Date.ToShortDateString()</td>
+                    <td>@transaction.Remarks</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<ItemTransaction> transactions = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        transactions = await TransactionService.GetAllTransactionsAsync();
+    }
+}

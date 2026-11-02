@@ -1,0 +1,78 @@
+﻿@page "/suppliers"
+@rendermode InteractiveServer 
+@using InventoryManagementSystem.Models
+@using InventoryManagementSystem.Service
+@inject SupplierService SupplierService
+@inject NavigationManager Nav
+
+<h3>Suppliers</h3>
+
+<button class="btn btn-primary mb-2" @onclick="TosupplierForm">
+    Add Supplier
+</button>
+
+@if (suppliers == null || suppliers.Count == 0)
+{
+    <p>No suppliers found.</p>
+}
+else
+{
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Supplier ID</th>
+                <th>Supplier Name</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var supplier in suppliers)
+            {
+                <tr>
+                    <td>@supplier.Supplier_ID</td>
+                    <td>@supplier.Supplier_Name</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm me-2"
+                                @onclick="() => Edit(supplier.Supplier_ID)">
+                            Edit
+                        </button>
+
+                        <button class="btn btn-danger btn-sm"
+                                @onclick="() => Delete(supplier.Supplier_ID)">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Supplier> suppliers = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        suppliers = await SupplierService.GetAllSuppliersAsync();
+    }
+
+    private void TosupplierForm()
+    {
+        Nav.NavigateTo("/supplierform");
+    }
+
+    private void Edit(int id)
+    {
+        Nav.NavigateTo($"/supplierform/{id}");
+    }
+
+    private async Task Delete(int id)
+    {
+        var result = await SupplierService.DeleteSupplierAsync(id);
+
+        if (result.Success)
+        {
+            suppliers = await SupplierService.GetAllSuppliersAsync();
+        }
+    }
+}

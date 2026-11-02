@@ -1,0 +1,75 @@
+﻿@page "/items"
+@rendermode InteractiveServer 
+@using InventoryManagementSystem.Models
+@using InventoryManagementSystem.Service
+@inject ItemService ItemService
+@inject NavigationManager Nav
+
+<h3>Items</h3>
+
+<button class="btn btn-primary mb-2" @onclick="ToitemForm">
+    Add Item
+</button>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Unit</th>
+            <th>Qty</th>
+            <th>Reorder</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in items)
+        {
+            <tr>
+                <td>@item.Item_Name</td>
+                <td>@item.Unit</td>
+                <td>@item.Qty_On_Hand</td>
+                <td>@item.Reorder_Level</td>
+                <td>
+                    @(item.Qty_On_Hand <= item.Reorder_Level ? "Low Stock" : "OK")
+                </td>
+                <td>
+                    <button class="btn btn-warning btn-sm"
+                            @onclick="() => Edit(item.Item_ID)">
+                        Edit
+                    </button>
+
+                    <button class="btn btn-danger btn-sm"
+                            @onclick="() => Delete(item.Item_ID)">
+                        Delete
+                    </button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    List<Item> items = new();
+
+    void ToitemForm()
+    {
+        Nav.NavigateTo("/itemform");
+    }
+
+    void Edit(int id)
+{
+    Nav.NavigateTo($"/itemform/{id}");
+}
+
+    protected override async Task OnInitializedAsync()
+    {
+        items = await ItemService.GetAllItemsAsync();
+    }
+
+    async Task Delete(int id)
+    {
+        await ItemService.DeleteItemAsync(id);
+        items = await ItemService.GetAllItemsAsync();
+    }
+}
